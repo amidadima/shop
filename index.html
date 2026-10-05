@@ -27,6 +27,12 @@
   .card .pr{font-weight:700;padding:2px 10px 10px}
   .big{aspect-ratio:1/1;border-radius:14px;background:#ccc center/cover no-repeat;margin-bottom:12px}
   .big-pr{font-size:22px;font-weight:700;margin-bottom:8px}
+  .gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;border-radius:14px;scrollbar-width:none}
+  .gal::-webkit-scrollbar{display:none}
+  .gal .slide{flex:none;width:100%;aspect-ratio:1/1;scroll-snap-align:center;background:#ccc center/cover no-repeat}
+  .dots{display:flex;justify-content:center;gap:6px;margin:8px 0 12px}
+  .dots i{width:7px;height:7px;border-radius:50%;background:var(--hint);opacity:.4}
+  .dots i.on{opacity:1;background:var(--btn)}
   .label{margin:16px 0 8px;font-weight:600}
   .sizes{display:flex;flex-wrap:wrap;gap:8px}
   .size{min-width:48px;padding:10px 14px;border-radius:10px;border:1px solid var(--hint);background:none;color:var(--text);font-size:16px}
@@ -45,7 +51,7 @@
 
 <script>
 // ================= НАСТРОЙКИ (меняйте только здесь) =================
-const API_URL  = "https://shop-orders.ddggoff.workers.dev";   // адрес Cloudflare Worker (шаг 4 инструкции)
+const API_URL  = "https://ВАШ-ВОРКЕР.workers.dev";   // адрес Cloudflare Worker (шаг 4 инструкции)
 const CURRENCY = "₽";
 const PAY_TEXT = "Мы свяжемся с вами в Telegram и пришлём реквизиты для оплаты.\nОплата переводом по номеру телефона или СБП.";
 // =====================================================================
@@ -69,7 +75,9 @@ const prod = id => PRODUCTS.find(p => p.id === id);
 const save = () => { try { localStorage.setItem("cart", JSON.stringify(cart)); } catch (e) {} };
 const total = () => cart.reduce((s, i) => s + prod(i.id).price * i.qty, 0);
 const count = () => cart.reduce((s, i) => s + i.qty, 0);
-const img = p => p.img ? `style="background-image:url('${esc(p.img)}')"` : "";
+// Список фото товара: поле "imgs" (несколько) или старое поле "img" (одно)
+const photos = p => (p.imgs && p.imgs.length) ? p.imgs : (p.img ? [p.img] : []);
+const img = p => photos(p)[0] ? `style="background-image:url('${esc(photos(p)[0])}')"` : "";
 
 // ---- главная кнопка Telegram внизу экрана ----
 let mainAction = null;
@@ -111,13 +119,27 @@ function renderList() {
 
 function renderProduct() {
   const p = prod(view.id);
+  const ph = photos(p);
+  const cur = view.photo || 0;
+  const gallery = ph.length
+    ? `<div class="gal" id="gal">${ph.map(u => `<div class="slide" style="background-image:url('${esc(u)}')"></div>`).join("")}</div>` +
+      (ph.length > 1 ? `<div class="dots" id="dots">${ph.map((_, i) => `<i class="${i === cur ? "on" : ""}"></i>`).join("")}</div>` : `<div style="height:12px"></div>`)
+    : `<div class="big"></div>`;
   app.innerHTML = `
-    <div class="big" ${img(p)}></div>
+    ${gallery}
     <h1>${esc(p.name)}</h1>
     <div class="big-pr">${money(p.price)}</div>
     <p class="hint">${esc(p.desc)}</p>
     <div class="label">Размер</div>
     <div class="sizes">${p.sizes.map(s => `<button class="size ${view.size === s ? "on" : ""}" data-s="${esc(s)}">${esc(s)}</button>`).join("")}</div>`;
+  const g = document.getElementById("gal");
+  if (g) {
+    g.scrollLeft = cur * g.clientWidth;   // вернуть то же фото после выбора размера
+    g.onscroll = () => {
+      view.photo = Math.round(g.scrollLeft / g.clientWidth);
+      document.querySelectorAll("#dots i").forEach((d, i) => d.classList.toggle("on", i === view.photo));
+    };
+  }
   app.querySelectorAll(".size").forEach(b => b.onclick = () => { view.size = b.dataset.s; render(); });
   if (view.size) {
     setMain("Добавить в корзину", () => {
