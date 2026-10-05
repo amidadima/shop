@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Магазин одежды</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg:var(--tg-theme-bg-color,#fff);
+    --text:var(--tg-theme-text-color,#111);
+    --hint:var(--tg-theme-hint-color,#8a8a8e);
+    --btn:var(--tg-theme-button-color,#2481cc);
+    --btntext:var(--tg-theme-button-text-color,#fff);
+    --sec:var(--tg-theme-secondary-bg-color,#f2f2f7);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 -apple-system,"Segoe UI",Roboto,sans-serif}
+  #app{padding:14px 14px 90px}
+  h1{font-size:22px;margin:4px 0 14px}
+  .hint{color:var(--hint)}
+  .pre{white-space:pre-line}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .card{background:var(--sec);border-radius:14px;overflow:hidden;cursor:pointer}
+  .ph{aspect-ratio:3/4;background:#ccc center/cover no-repeat}
+  .card .nm{margin-top:8px;font-size:15px;padding:0 10px}
+  .card .pr{font-weight:700;padding:2px 10px 10px}
+  .big{aspect-ratio:1/1;border-radius:14px;background:#ccc center/cover no-repeat;margin-bottom:12px}
+  .big-pr{font-size:22px;font-weight:700;margin-bottom:8px}
+  .label{margin:16px 0 8px;font-weight:600}
+  .sizes{display:flex;flex-wrap:wrap;gap:8px}
+  .size{min-width:48px;padding:10px 14px;border-radius:10px;border:1px solid var(--hint);background:none;color:var(--text);font-size:16px}
+  .size.on{background:var(--btn);color:var(--btntext);border-color:var(--btn)}
+  .row{display:flex;gap:12px;align-items:center;background:var(--sec);border-radius:14px;padding:10px;margin-bottom:10px}
+  .th{width:64px;height:80px;border-radius:10px;background:#ccc center/cover no-repeat;flex:none}
+  .info{flex:1;min-width:0}
+  .qty{display:flex;align-items:center;gap:10px}
+  .qty button{width:34px;height:34px;border-radius:50%;border:none;background:var(--btn);color:var(--btntext);font-size:20px}
+  .sum{text-align:right;font-size:18px;margin-top:14px}
+  input,textarea{width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid var(--hint);background:var(--bg);color:var(--text);font:inherit}
+</style>
+</head>
+<body>
+<div id="app"><p class="hint">Загрузка…</p></div>
+
+<script>
+// ================= НАСТРОЙКИ (меняйте только здесь) =================
+const API_URL  = "https://ВАШ-ВОРКЕР.workers.dev";   // адрес Cloudflare Worker (шаг 4 инструкции)
+const CURRENCY = "₽";
+const PAY_TEXT = "Мы свяжемся с вами в Telegram и пришлём реквизиты для оплаты.\nОплата переводом по номеру телефона или СБП.";
+// =====================================================================
+
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+const app = document.getElementById("app");
+let PRODUCTS = [];
+let cart = [];
+try { cart = JSON.parse(localStorage.getItem("cart") || "[]"); } catch (e) {}
+let view = { name: "list" };
+let sending = false;
+const user = (tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
+const form = { name: [user.first_name, user.last_name].filter(Boolean).join(" "), phone: "", address: "", comment: "" };
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const money = n => n.toLocaleString("ru-RU") + " " + CURRENCY;
+const prod = id => PRODUCTS.find(p => p.id === id);
+const save = () => { try { localStorage.setItem("cart", JSON.stringify(cart)); } catch (e) {} };
+const total = () => cart.reduce((s, i) => s + prod(i.id).price * i.qty, 0);
+const count = () => cart.reduce((s, i) => s + i.qty, 0);
+const img = p => p.img ? `style="background-image:url('${esc(p.img)}')"` : "";
+
+// ---- главная кнопка Telegram внизу экрана ----
+let mainAction = null;
+tg.MainButton.onClick(() => mainAction && mainAction());
+function setMain(text, fn) {
+  if (!text) { tg.MainButton.hide(); mainAction = null; return; }
+  tg.MainButton.setText(text);
+  tg.MainButton.show();
+  mainAction = fn;
+}
+
+// ---- кнопка «назад» ----
+tg.BackButton.onClick(() => {
+  if (view.name === "checkout") go({ name: "cart" });
+  else go({ name: "list" });
+});
+
+function go(v) { view = v; render(); window.scrollTo(0, 0); }
+
+function render() {
+  view.name === "list" ? tg.BackButton.hide() : tg.BackButton.show();
+  if (view.name === "list") return renderList();
+  if (view.name === "product") return renderProduct();
+  if (view.name === "cart") return renderCart();
+  if (view.name === "checkout") return renderCheckout();
+  if (view.name === "done") return renderDone();
+}
+
+function renderList() {
+  app.innerHTML = `<h1>Каталог</h1><div class="grid">${PRODUCTS.map(p => `
+    <div class="card" data-id="${p.id}">
+      <div class="ph" ${img(p)}></div>
+      <div class="nm">${esc(p.name)}</div>
+      <div class="pr">${money(p.price)}</div>
+    </div>`).join("")}</div>`;
+  app.querySelectorAll(".card").forEach(el => el.onclick = () => go({ name: "product", id: +el.dataset.id, size: null }));
+  count() ? setMain(`Корзина · ${money(total())}`, () => go({ name: "cart" })) : setMain(null);
+}
+
+function renderProduct() {
+  const p = prod(view.id);
+  app.innerHTML = `
+    <div class="big" ${img(p)}></div>
+    <h1>${esc(p.name)}</h1>
+    <div class="big-pr">${money(p.price)}</div>
+    <p class="hint">${esc(p.desc)}</p>
+    <div class="label">Размер</div>
+    <div class="sizes">${p.sizes.map(s => `<button class="size ${view.size === s ? "on" : ""}" data-s="${esc(s)}">${esc(s)}</button>`).join("")}</div>`;
+  app.querySelectorAll(".size").forEach(b => b.onclick = () => { view.size = b.dataset.s; render(); });
+  if (view.size) {
+    setMain("Добавить в корзину", () => {
+      const ex = cart.find(i => i.id === p.id && i.size === view.size);
+      ex ? ex.qty++ : cart.push({ id: p.id, size: view.size, qty: 1 });
+      save();
+      tg.HapticFeedback.notificationOccurred("success");
+      go({ name: "list" });
+    });
+  } else {
+    setMain("Выберите размер", () => tg.HapticFeedback.notificationOccurred("warning"));
+  }
+}
+
+function renderCart() {
+  if (!cart.length) {
+    app.innerHTML = `<h1>Корзина</h1><p class="hint">Корзина пуста</p>`;
+    setMain(null);
+    return;
+  }
+  app.innerHTML = `<h1>Корзина</h1>${cart.map((i, idx) => {
+    const p = prod(i.id);
+    return `<div class="row">
+      <div class="th" ${img(p)}></div>
+      <div class="info">
+        <div>${esc(p.name)}</div>
+        <div class="hint">Размер ${esc(i.size)}</div>
+        <b>${money(p.price * i.qty)}</b>
+      </div>
+      <div class="qty">
+        <button data-a="minus" data-i="${idx}">−</button><span>${i.qty}</span><button data-a="plus" data-i="${idx}">+</button>
+      </div></div>`;
+  }).join("")}<div class="sum">Итого: <b>${money(total())}</b></div>`;
+  app.querySelectorAll(".qty button").forEach(b => b.onclick = () => {
+    const it = cart[+b.dataset.i];
+    if (b.dataset.a === "plus") it.qty = Math.min(it.qty + 1, 20);
+    else it.qty--;
+    cart = cart.filter(x => x.qty > 0);
+    save();
+    render();
+  });
+  setMain("Оформить заказ", () => go({ name: "checkout" }));
+}
+
+function renderCheckout() {
+  app.innerHTML = `<h1>Оформление</h1>
+    <input id="f_name" placeholder="Имя" value="${esc(form.name)}">
+    <input id="f_phone" type="tel" placeholder="Телефон" value="${esc(form.phone)}">
+    <textarea id="f_address" rows="3" placeholder="Город, адрес или пункт выдачи">${esc(form.address)}</textarea>
+    <textarea id="f_comment" rows="2" placeholder="Комментарий (необязательно)">${esc(form.comment)}</textarea>
+    <div class="sum">Итого: <b>${money(total())}</b></div>`;
+  ["name", "phone", "address", "comment"].forEach(k => {
+    document.getElementById("f_" + k).oninput = e => form[k] = e.target.value;
+  });
+  setMain("Отправить заказ", submit);
+}
+
+function renderDone() {
+  app.innerHTML = `<h1>Заказ №${esc(view.id)} принят ✅</h1><p class="pre">${esc(PAY_TEXT)}</p>`;
+  tg.BackButton.hide();
+  setMain("Закрыть", () => tg.close());
+}
+
+async function submit() {
+  if (sending) return;
+  if (!form.name.trim() || !form.phone.trim() || !form.address.trim()) {
+    tg.showAlert("Заполните имя, телефон и адрес.");
+    return;
+  }
+  sending = true;
+  tg.MainButton.showProgress();
+  try {
+    const r = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ initData: tg.initData, items: cart, customer: form })
+    });
+    const j = await r.json();
+    if (!r.ok || !j.ok) throw new Error(j.error || "ошибка сервера");
+    cart = []; save();
+    go({ name: "done", id: j.orderId });
+  } catch (e) {
+    tg.showAlert("Не удалось отправить заказ: " + e.message);
+  } finally {
+    sending = false;
+    tg.MainButton.hideProgress();
+  }
+}
+
+// ---- запуск ----
+fetch("products.json?t=" + Date.now())
+  .then(r => r.json())
+  .then(list => {
+    PRODUCTS = list;
+    cart = cart.filter(i => prod(i.id));   // убрать из корзины товары, которых больше нет
+    render();
+  })
+  .catch(() => { app.innerHTML = `<p>Не удалось загрузить каталог. Попробуйте позже.</p>`; });
+</script>
+</body>
+</html>
