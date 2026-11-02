@@ -72,26 +72,17 @@ img{display:block}
 .hero::after{content:"";position:absolute;width:260px;height:260px;left:-130px;bottom:-160px;background:radial-gradient(circle,rgba(244,242,237,.08),transparent 65%);animation:float 12s ease-in-out infinite reverse;pointer-events:none}
 @keyframes float{50%{transform:translate(-18px,14px) scale(1.08)}}
 .hero>*{position:relative;z-index:1}
-/* живая эмблема: полумесяц + пять лучей */
-.bigmoon{position:absolute;right:-22px;bottom:-18px;width:188px;height:188px;z-index:0;animation:moonfloat 11s ease-in-out infinite}
-@keyframes moonfloat{50%{transform:translate(-8px,-12px) rotate(-5deg)}}
-.bigmoon img{width:100%;height:100%;object-fit:contain;opacity:.92}
-.bigmoon .rays{position:absolute;inset:0;width:100%;height:100%}
-.bigmoon .ray{stroke:transparent;stroke-width:16;stroke-linecap:round;cursor:pointer}
-.bigmoon .glow{fill:rgba(244,242,237,.38);filter:blur(9px);animation:raypulse 1.5s ease-in-out infinite}
-@keyframes raypulse{50%{filter:drop-shadow(0 0 12px rgba(244,242,237,.95))}}
+/* эмблема в hero: еле заметная, за отсчётом */
+.bigmoon{position:absolute;right:18px;top:76px;width:150px;height:150px;object-fit:contain;opacity:.1;z-index:0;pointer-events:none;animation:moonfloat 14s ease-in-out infinite}
+@keyframes moonfloat{50%{transform:translate(-6px,-10px) rotate(-4deg)}}
 .eyebrow{font:500 10px/1 var(--sans);letter-spacing:.32em;text-transform:uppercase;color:var(--mu)}
 .hero .eyebrow{color:var(--tx)}
 .hero h1{font:500 44px/1.02 var(--serif);margin:14px 0 12px;letter-spacing:-.01em;max-width:280px}
 .hero h1 em{font-style:italic;color:var(--acc2)}
 .hero p{color:var(--mu);max-width:280px}
-.cdl{font-size:11px;color:var(--mu);margin-top:18px;letter-spacing:.06em}
-.cd{display:flex;gap:8px;margin:8px 0 2px}
-.cd div{min-width:54px;padding:9px 6px 8px;text-align:center;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);perspective:260px}
-.cd b{display:block;font:500 22px/1 var(--serif);font-variant-numeric:tabular-nums;margin-bottom:4px;backface-visibility:hidden}
-.cd b.tick{animation:flip .35s}
-@keyframes flip{from{transform:rotateX(-75deg);opacity:.1}}
-.cd span{font:500 8px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mu)}
+.cdl{font-size:12px;color:var(--mu);margin-top:18px;letter-spacing:.06em}
+.srnum{font:500 15px/1 var(--serif);font-variant-numeric:tabular-nums;color:var(--tx);letter-spacing:.04em}
+.srnum.hot{color:var(--acc2)}
 .cta{margin-top:20px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border-radius:30px;
   background:linear-gradient(180deg,#ffffff,#d9d6d1);color:var(--ink);font-weight:600;font-size:13px;letter-spacing:.04em;transition:transform .15s}
 .cta:active{transform:scale(.97)}
@@ -133,8 +124,8 @@ img{display:block}
 @keyframes pop{50%{transform:scale(1.35)}}
 
 .empty{text-align:center;padding:64px 20px;color:var(--mu)}
-.empty .emk{width:60px;height:60px;opacity:.5;margin:0 auto 16px}
-.empty .emk img{width:100%;height:100%;object-fit:contain}
+.empty .emk{display:block;width:44px;height:44px;opacity:.45;margin:0 auto 16px}
+.empty .emk img{display:block;width:100%;height:100%;object-fit:contain}
 .empty b{display:block;font:500 28px/1.1 var(--serif);color:var(--tx);margin-bottom:6px}
 .sk{border-radius:var(--r);aspect-ratio:4/5;background:linear-gradient(100deg,var(--s1) 30%,var(--s2) 50%,var(--s1) 70%);background-size:200% 100%;animation:shim 1.4s infinite}
 @keyframes shim{to{background-position:-200% 0}}
@@ -231,8 +222,8 @@ textarea.inp{resize:none;display:block}
 /* ---------- заказ принят ---------- */
 .tkt{position:relative;margin-top:26px;padding:34px 22px 28px;border-radius:22px;text-align:center;overflow:hidden;
   background:radial-gradient(130% 100% at 50% -20%,rgba(244,242,237,.09),transparent 55%),linear-gradient(170deg,#141414,#0a0a0a 70%)}
-.tktm{width:44px;height:44px;margin:0 auto 18px}
-.tktm img{width:100%;height:100%;object-fit:contain;opacity:.9}
+.tktm{display:block;width:34px;height:34px;margin:0 auto 18px}
+.tktm img{display:block;width:100%;height:100%;object-fit:contain;opacity:.85}
 .stamp{display:inline-block;padding:10px 18px;border:2px solid var(--acc);border-radius:8px;color:var(--tx);
   font:400 22px/1 var(--goth);letter-spacing:.12em;transform:rotate(-5deg) scale(2.2);opacity:0;animation:stamp .5s .3s cubic-bezier(.2,1.4,.4,1) forwards}
 @keyframes stamp{to{transform:rotate(-5deg) scale(1);opacity:1}}
@@ -347,18 +338,41 @@ $("#hbk").innerHTML = I.back;
 $("#favBtn").innerHTML = I.heart;
 $("#bagBtn").innerHTML = I.bag + '<span class="badge" id="bagN">0</span>';
 
-// ---------- луна (настоящая) ----------
-const SYNODIC = 29.530588853;                       // синодический месяц, суток
-const MOON_EPOCH = Date.UTC(2000, 0, 6, 18, 14);    // опорное новолуние
-const PHASES = ["новолуние", "растущий полумесяц", "первая четверть", "растущая луна", "полнолуние", "убывающая луна", "последняя четверть", "убывающий полумесяц"];
-function moonInfo(d = new Date()) {
-  const age = (((d - MOON_EPOCH) / 864e5) % SYNODIC + SYNODIC) % SYNODIC;
-  const idx = Math.floor(age / (SYNODIC / 8)) % 8;
-  const pct = Math.round((1 - Math.cos(2 * Math.PI * age / SYNODIC)) / 2 * 100);
-  const toNew = Math.round((SYNODIC - age) % SYNODIC * 864e5);
-  return { age, idx, pct, toNew };
+// ---------- восход (настоящий) ----------
+const SR_WIN = 5 * 60e3;                 // скидка действует 5 минут после восхода
+const SR_DISC = -10;                     // процент скидки восхода
+const SR = { lat: 55.7558, lon: 37.6173, rise: null, next: null };   // по умолчанию Москва
+// восход по NOAA; возвращает ms UTC или null (полярный день/ночь)
+function sunriseUTC(d, lat, lon) {
+  const rad = Math.PI / 180;
+  const N = Math.floor((Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - Date.UTC(d.getUTCFullYear(), 0, 0)) / 864e5);
+  const g = 2 * Math.PI / 365 * (N - 1);
+  const cos = Math.cos, sin = Math.sin;
+  const eqt = 229.18 * (0.000075 + 0.001868 * cos(g) - 0.032077 * sin(g) - 0.014615 * cos(2 * g) - 0.040849 * sin(2 * g));
+  const decl = 0.006918 - 0.399912 * cos(g) + 0.070257 * sin(g) - 0.006758 * cos(2 * g) + 0.000907 * sin(2 * g) - 0.002697 * cos(3 * g) + 0.00148 * sin(3 * g);
+  const cosH = (cos(90.833 * rad) - sin(lat * rad) * sin(decl)) / (cos(lat * rad) * cos(decl));
+  if (cosH > 1 || cosH < -1) return null;
+  const ha = Math.acos(cosH) / rad;
+  const minUTC = 720 - 4 * (lon + ha) - eqt;          // минуты от полуночи UTC
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) + minUTC * 60e3;
 }
-const isNewMoon = () => { const a = moonInfo().age; return a < 1 || a > SYNODIC - 1; };
+function srUpdate(now = Date.now()) {
+  const today = sunriseUTC(new Date(now), SR.lat, SR.lon);
+  if (today != null && now >= today && now < today + SR_WIN) {   // окно скидки открыто
+    SR.rise = today;
+    SR.next = sunriseUTC(new Date(now + 864e5), SR.lat, SR.lon);
+    return;
+  }
+  SR.rise = null;
+  SR.next = today != null && now < today ? today : sunriseUTC(new Date(now + 864e5), SR.lat, SR.lon);
+}
+const srActive = () => SR.rise != null && Date.now() >= SR.rise && Date.now() < SR.rise + SR_WIN;
+if (navigator.geolocation) {
+  navigator.permissions && navigator.permissions.query({ name: "geolocation" }).then(st => {
+    if (st.state !== "granted") return;
+    navigator.geolocation.getCurrentPosition(p => { SR.lat = p.coords.latitude; SR.lon = p.coords.longitude; srUpdate(); }, () => {}, { timeout: 3000 });
+  }).catch(() => {});
+}
 
 // ---------- состояние ----------
 let CFG = {}, PRODUCTS = [];
@@ -395,13 +409,18 @@ const signed = n => (n > 0 ? "+" : "−") + money(Math.abs(n));
 function calc(deliveryId) {
   const goods = goodsSum();
   const promo = findPromo(S.promo);
-  const adj = promo ? Math.round(goods * promo.percent / 100) : 0;
+  let adj = promo ? Math.round(goods * promo.percent / 100) : 0;
+  let promoLabel = promo ? (promo.label || "Промокод") : "";
+  if (srActive()) {   // скидка восхода автоматически, если выгоднее
+    const srAdj = Math.round(goods * SR_DISC / 100);
+    if (srAdj < adj) { adj = srAdj; promoLabel = "Восход −10%"; }
+  }
   const sub = goods + adj;
   const dl = (CFG.delivery || []).find(d => d.id === deliveryId) || null;
   const thr = Number(CFG.freeShipFrom) || 0;
   const free = thr > 0 && sub >= thr;
   const ship = dl ? (free ? 0 : dl.price) : 0;
-  return { goods, promo, adj, sub, dl, free, ship, total: sub + ship, thr };
+  return { goods, promo, promoLabel, adj, sub, dl, free, ship, total: sub + ship, thr };
 }
 
 // ---------- тосты, шторка, анимации ----------
@@ -426,39 +445,6 @@ function openSheet(html) {
   document.body.appendChild(sheet);
 }
 function closeSheet() { if (sheet) { sheet.remove(); sheet = null; } }
-
-function confetti() {
-  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const cv = document.createElement("canvas");
-  cv.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:150";
-  document.body.appendChild(cv);
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
-  const ctx = cv.getContext && cv.getContext("2d");
-  if (!ctx) { cv.remove(); return; }
-  ctx.scale(dpr, dpr);
-  const cols = ["#f4f2ed", "#d9d6cf", "#8f8d87", "#4a4a4d"];
-  const ps = Array.from({ length: 110 }, () => ({
-    x: innerWidth / 2, y: innerHeight * 0.38,
-    vx: (Math.random() - .5) * 14, vy: -Math.random() * 13 - 4,
-    w: 5 + Math.random() * 6, h: 3 + Math.random() * 5,
-    r: Math.random() * 6, vr: (Math.random() - .5) * .4,
-    c: cols[Math.random() * cols.length | 0]
-  }));
-  const t0 = performance.now();
-  (function frame(t) {
-    const k = t - t0;
-    ctx.clearRect(0, 0, innerWidth, innerHeight);
-    ps.forEach(p => {
-      p.vy += .35; p.vx *= .992; p.x += p.vx; p.y += p.vy; p.r += p.vr;
-      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
-      ctx.globalAlpha = Math.max(0, 1 - k / 2600);
-      ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-      ctx.restore();
-    });
-    k < 2600 ? requestAnimationFrame(frame) : cv.remove();
-  })(t0);
-}
 
 function fly(fromEl) {
   const bag = $("#bagBtn");
@@ -487,7 +473,7 @@ function setMain(text, fn) {
   mainFn = fn || null;
   if (IN_TG) {
     if (!text) { safe(() => TG.MainButton.hide()); return; }
-    safe(() => { TG.MainButton.setParams({ text, color: "#f4f2ed", text_color: "#0a0a0a" }); TG.MainButton.show(); });
+    safe(() => { TG.MainButton.setParams({ color: "#f4f2ed", text_color: "#0a0a0a" }); TG.MainButton.setText(text); TG.MainButton.show(); });
   } else {
     fb.textContent = text || "";
     fb.classList.toggle("show", !!text);
@@ -531,55 +517,32 @@ function openProduct(id) {
   go({ name: "product", id, size: p.sizes.length === 1 ? p.sizes[0] : null, color: (p.colors && p.colors[0]) ? p.colors[0].name : "", photo: 0, added: false });
 }
 
-// ---------- живая эмблема: пять лучей ----------
-const RAY_D = [
-  "M 155.9 39.3 L 169.4 10.3",
-  "M 159.9 42.1 L 182.5 19.5",
-  "M 162.7 46.1 L 191.7 33.6",
-  "M 163.9 50.1 L 195.5 45.6",
-  "M 163.9 53.9 L 195.5 58.4"
-];
+// ---------- эмблема в hero (фон, нет интерактива) ----------
 function emblemHtml() {
-  const hot = isNewMoon();
-  return `<span class="bigmoon" aria-hidden="true"><img src="emb_white.svg" alt="" onerror="this.remove()">
-    <svg class="rays" viewBox="0 0 200 200">${RAY_D.map((d, i) => `<path class="ray" data-act="ray" data-r="${i}" d="${d}"/>`).join("")}${hot ? '<circle class="glow" cx="181" cy="42" r="22"/>' : ""}</svg></span>`;
-}
-function rayTap(el) {
-  const r = +el.dataset.r;
-  if (isNewMoon() && r === 4) { el.classList.add("lit"); hap.ok(); secret(); return; }
-  hap.sel();
+  return `<img class="bigmoon" src="emb_white.svg" alt="" aria-hidden="true" onerror="this.remove()">`;
 }
 
-// ---------- экраны ----------
+// ---------- отсчёт до восхода ----------
 let cdTimer;
-function cdCells(ms) {
-  const s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
-  return { d, h, m, x };
-}
-function cdHtml() {
-  const c = cdCells(moonInfo().toNew);
-  const cell = (k, n, l) => `<div data-k="${k}"><b>${String(n).padStart(2, "0")}</b><span>${l}</span></div>`;
-  return cell("d", c.d, "дн") + cell("h", c.h, "час") + cell("m", c.m, "мин") + cell("s", c.x, "сек");
-}
-function moonTick() {
-  const el = $("#cd"), dl = $("#cdl");
+function srClock() {
+  const el = $("#sr");
   if (!el) { clearInterval(cdTimer); return; }
-  const m = moonInfo();
-  if (isNewMoon()) {
-    el.style.display = "none";
-    if (dl) dl.textContent = "Сейчас: новолуние · 0%";
+  srUpdate();
+  const now = Date.now();
+  if (srActive()) {
+    const left = SR.rise + SR_WIN - now;
+    const s = Math.max(0, Math.floor(left / 1000));
+    el.textContent = `−${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+    const t = $("#srtxt"); if (t) t.textContent = "Восход · −10%";
+    el.classList.add("hot");
     return;
   }
-  el.style.display = "";
-  if (dl) dl.textContent = `Сейчас: ${PHASES[m.idx]} · ${m.pct}% · до новолуния`;
-  const c = cdCells(m.toNew);
-  const set = (k, v) => {
-    const b = el.querySelector(`[data-k="${k}"] b`);
-    if (!b) return;
-    const t = String(v).padStart(2, "0");
-    if (b.textContent !== t) { b.textContent = t; b.classList.remove("tick"); void b.offsetWidth; b.classList.add("tick"); }
-  };
-  set("d", c.d); set("h", c.h); set("m", c.m); set("s", c.x);
+  el.classList.remove("hot");
+  const t = $("#srtxt"); if (t) t.textContent = "До восхода";
+  if (SR.next == null) { el.textContent = "—"; return; }
+  const left = Math.max(0, SR.next - now);
+  const h = Math.floor(left / 36e5), m = Math.floor(left % 36e5 / 6e4), s = Math.floor(left % 6e4 / 1e3);
+  el.textContent = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
 function filtered() {
@@ -628,10 +591,10 @@ function viewHome() {
   const lines = String(hero.title || CFG.shopName || "").split("\n");
   const last = lines.pop();
   const titleHtml = lines.map(esc).join("<br>") + (lines.length ? "<br>" : "") + `<em>${esc(last)}</em>`;
-  const m = moonInfo();
   const ticker = [...(CFG.ticker || [])];
   if (CFG.freeShipFrom > 0) ticker.unshift("От " + money(CFG.freeShipFrom) + " — доставка за наш счёт");
   const tk = ticker.map(t => `<span>${esc(t)}</span>`).join("");
+  srUpdate();
   return `
   <section class="hero glass">
     <span class="wm" aria-hidden="true">1401041</span>
@@ -640,21 +603,16 @@ function viewHome() {
     <div class="eyebrow">${esc(hero.eyebrow || "")}</div>
     <h1>${titleHtml}</h1>
     <p>${esc(hero.subtitle || "")}</p>
-    ${isNewMoon()
-      ? `<div class="cdl" id="cdl">Сейчас: новолуние · 0%</div>`
-      : `<div class="cdl" id="cdl">Сейчас: ${PHASES[m.idx]} · ${m.pct}% · до новолуния</div><div class="cd" id="cd">${cdHtml()}</div>`}
+    <div class="cdl"><span id="srtxt">До восхода</span> · <b class="srnum" id="sr">--:--:--</b></div>
     <button class="cta" data-act="toGrid">Смотреть вещи ${I.arrow}</button>
   </section>
   ${ticker.length ? `<div class="tick"><div>${tk}${tk}${tk}${tk}</div></div>` : ""}
-  <div class="search">${I.search}<input id="q" type="search" placeholder="Поиск" value="${esc(S.q)}" autocomplete="off"></div>
-  <div class="chips" id="chips">${chipsHtml()}</div>
+  <div class="chips" id="chips" style="margin-top:20px">${chipsHtml()}</div>
   <div class="sec goth" style="margin-top:26px">Фаза 01 · в наличии</div>
   <div class="grid" id="grid">${gridHtml()}</div>
   ${upcomingHtml()}
   <footer class="ft">
     <img class="fl" src="logo_white.svg" alt="" onerror="this.remove()">
-    <div class="fg">носи свой восход</div>
-    <span>дропы идут по лунному календарю</span>
   </footer>`;
 }
 
@@ -770,7 +728,7 @@ function viewCart() {
   return `<h2 class="h2">Корзина</h2>${ship}${items}${promoBox}
   <div class="sum glass">
     <div class="ln"><span>Товары (${cartCount()})</span><span>${money(c.goods)}</span></div>
-    ${pr ? `<div class="ln"><span>${esc(pr.label || "Промокод")}</span><span class="g">${signed(c.adj)}</span></div>` : ""}
+    ${c.promoLabel ? `<div class="ln"><span>${esc(c.promoLabel)}</span><span class="g">${signed(c.adj)}</span></div>` : ""}
     <div class="ln"><span>Доставка</span><span>на следующем шаге</span></div>
     <div class="ln t"><span>Сумма заказа</span><span>${money(c.sub)}</span></div>
   </div>`;
@@ -787,7 +745,7 @@ function optHtml(d) {
 }
 function summaryHtml(c) {
   return `<div class="ln"><span>Товары (${cartCount()})</span><span>${money(c.goods)}</span></div>
-    ${c.promo ? `<div class="ln"><span>${esc(c.promo.label || "Промокод")}</span><span class="g">${signed(c.adj)}</span></div>` : ""}
+    ${c.promoLabel ? `<div class="ln"><span>${esc(c.promoLabel)}</span><span class="g">${signed(c.adj)}</span></div>` : ""}
     <div class="ln"><span>Доставка${c.dl ? " · " + esc(c.dl.name) : ""}</span><span>${c.ship === 0 ? "Бесплатно" : money(c.ship)}</span></div>
     <div class="ln t"><span>Итого</span><span>${money(c.total)}</span></div>`;
 }
@@ -841,7 +799,9 @@ async function submit() {
         body: JSON.stringify({
           initData: TG.initData,
           items: S.cart.map(i => ({ id: i.id, size: i.size, color: i.color, qty: i.qty })),
-          customer: f, delivery: S.delivery, promo: S.promo || ""
+          customer: f, delivery: S.delivery,
+          promo: srActive() ? "восход" : (S.promo || ""),
+          sunrise: SR.rise || 0, lat: SR.lat, lon: SR.lon
         })
       });
       res = await r.json();
@@ -869,20 +829,20 @@ function viewDone() {
     <div class="perf"></div>
     <p class="pay">${esc(CFG.payText || "Скоро свяжемся.")}</p>
   </div>
-  <p class="thx">Первый шаг сделан.<br>Дальше — свет.</p>`;
+  <p class="thx">Первый шаг сделан.</p>`;
 }
 
 const VIEWS = {
   home: [viewHome, () => {
     clearInterval(cdTimer);
-    moonTick();
-    cdTimer = setInterval(moonTick, 1000);
+    srClock();
+    cdTimer = setInterval(srClock, 1000);
     S.cart.length ? setMain("Корзина · " + money(calc(null).sub), () => go({ name: "cart" })) : setMain("");
   }],
   product: [viewProduct, afterProduct],
   cart: [viewCart, afterCart],
   checkout: [viewCheckout, syncCheckout],
-  done: [viewDone, () => { confetti(); hap.ok(); setMain("Закрыть", () => IN_TG ? safe(() => TG.close()) : go({ name: "home" }, { reset: true })); }]
+  done: [viewDone, () => { hap.ok(); setMain("Закрыть", () => IN_TG ? safe(() => TG.close()) : go({ name: "home" }, { reset: true })); }]
 };
 
 function render(anim = true) {
@@ -891,20 +851,6 @@ function render(anim = true) {
   app.innerHTML = `<div class="view${anim ? "" : " na"}">${html()}</div>`;
   chrome();
   after();
-}
-
-// ---------- тёмная фаза ----------
-function secret() {
-  hap.ok(); confetti();
-  const p = (CFG.promos || [])[0];
-  openSheet(p
-    ? `<div class="eyebrow">Тёмная фаза</div>
-       <h3 class="sh" style="margin-top:12px">Вы сюда не случайно.</h3>
-       <p class="mu">Промокод этого новолуния:</p>
-       <div class="code">${esc(p.code)}</div>
-       <p class="mu sm">${esc(p.spoiler || "")}</p>
-       <button class="cta wide" data-act="usePromo">Применить в корзине</button>`
-    : `<h3 class="sh">Тёмная фаза закрыта</h3><p class="mu">Откроется в следующем новолунии.</p>`);
 }
 
 // ---------- действия ----------
@@ -918,16 +864,11 @@ function toggleFav(id) {
   if (view.name === "home" && S.favOnly && !on) $("#grid").innerHTML = gridHtml();
   if (on) toast("В избранном");
 }
-let logoTaps = 0, logoT;
 const A = {
   open: el => { closeSheet(); openProduct(+el.dataset.id); },
   fav: el => toggleFav(+el.dataset.id),
   back: () => back(),
-  logo: () => {
-    logoTaps++; clearTimeout(logoT); logoT = setTimeout(() => { logoTaps = 0; }, 2200);
-    if (logoTaps >= 5) { logoTaps = 0; secret(); return; }
-    if (view.name !== "home") go({ name: "home" }, { reset: true });
-  },
+  logo: () => { if (view.name !== "home") go({ name: "home" }, { reset: true }); },
   bag: () => { if (view.name !== "cart") go({ name: "cart" }); },
   favFilter: () => {
     S.favOnly = !S.favOnly; hap.sel();
@@ -935,8 +876,7 @@ const A = {
     else { $("#grid").innerHTML = gridHtml(); chrome(); }
   },
   cat: el => { S.cat = el.dataset.v; hap.sel(); $("#chips").innerHTML = chipsHtml(); $("#grid").innerHTML = gridHtml(); },
-  toGrid: () => { const s = $(".search"); if (s && s.scrollIntoView) s.scrollIntoView({ behavior: "smooth", block: "start" }); },
-  ray: el => rayTap(el),
+  toGrid: () => { const s = $("#grid"); if (s && s.scrollIntoView) s.scrollIntoView({ behavior: "smooth", block: "start" }); },
   size: el => {
     view.size = el.dataset.v; view.added = false; hap.sel();
     $$('[data-act="size"]').forEach(b => b.classList.toggle("on", b === el));
@@ -965,18 +905,12 @@ const A = {
   del: el => { S.cart = S.cart.filter(x => keyOf(x) !== el.dataset.k); cartChanged(); },
   promoOn: () => {
     const inp = $("#promo"), p = findPromo(inp.value);
-    if (!p) { inp.classList.add("err"); shake(inp); hap.warn(); toast("Такого нет. Проверьте орфографию."); return; }
+    if (!p) { inp.classList.add("err"); shake(inp); hap.warn(); toast("Промокод не найден"); return; }
     S.promo = p.code; store("promo", S.promo);
-    hap.ok(); confetti(); render(false);
+    hap.ok(); render(false);
     toast(p.toast || "Промокод применён", 3600);
   },
   promoOff: () => { S.promo = ""; store("promo", ""); hap.tap(); render(false); },
-  usePromo: () => {
-    const p = (CFG.promos || [])[0]; if (!p) return;
-    S.promo = p.code; store("promo", S.promo); closeSheet(); hap.ok();
-    if (view.name === "cart") render(false);
-    toast(p.toast || "Промокод применён", 3600);
-  },
   delivery: el => { S.delivery = el.dataset.id; hap.sel(); syncCheckout(); },
   reload: () => location.reload()
 };
@@ -990,7 +924,6 @@ document.addEventListener("click", e => {
 document.addEventListener("input", e => {
   const t = e.target;
   if (t.dataset && t.dataset.f) { S.form[t.dataset.f] = t.value; t.classList.remove("err"); }
-  else if (t.id === "q") { S.q = t.value; $("#grid").innerHTML = gridHtml(); }
   else if (t.id === "promo") t.classList.remove("err");
 });
 document.addEventListener("keydown", e => {
@@ -1008,7 +941,8 @@ function startSplash() {
     $("#spw").style.display = "";
     $("#spw").innerHTML = Array.from(String(CFG.shopName || "")).map((ch, i) => `<span style="--i:${i}">${ch === " " ? "&nbsp;" : esc(ch)}</span>`).join("");
   }
-  $("#spt").textContent = CFG.tagline || "";
+  const spt = $("#spt");
+  if (CFG.tagline) spt.textContent = CFG.tagline; else spt.remove();
   const off = () => { sp.classList.add("hide"); setTimeout(() => sp.remove(), 700); };
   sp.addEventListener("click", off);
   setTimeout(off, 1700);
